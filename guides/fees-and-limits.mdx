@@ -58,7 +58,14 @@ GET /api/v1/trading/account/settings
 ## How rules affect orders
 
 When you place an order, these rules are checked **before** it reaches the
-exchange. The order **value** is `base_quantity × price` in the quote currency.
+exchange. The order **value** is measured in the quote currency, and how it's
+derived depends on the [order type](/guides/orders):
+
+- **LIMIT** (and STOP_LIMIT) — `base_quantity × price`.
+- **MARKET BUY** — the `quote_value` you send (the spend).
+- **MARKET SELL** — the value isn't known at submit time, so the platform
+  min/max bounds are **skipped** (the exchange's own limits still apply).
+
 A violation returns **HTTP 400** with a descriptive `message`:
 
 | Situation | Example message |

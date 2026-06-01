@@ -167,12 +167,14 @@
             "name": "type",
             "required": false,
             "in": "query",
-            "description": "Filter by order type. Currently only `LIMIT` is supported.",
+            "description": "Filter by order type (LIMIT, MARKET, STOP_LIMIT). Omit to return all types.",
             "schema": {
               "example": "LIMIT",
               "type": "string",
               "enum": [
-                "LIMIT"
+                "LIMIT",
+                "MARKET",
+                "STOP_LIMIT"
               ]
             }
           },
@@ -930,23 +932,19 @@
     }
   },
   "info": {
-    "title": "Xenios Trading Server",
-    "description": "Place and manage orders, stream live market and account data, and read wallets, deposits and reference data over one authenticated gateway.\n\nAll protected endpoints are authenticated with an HMAC-SHA256 request signature (see the **Authentication** guide). Decimal amounts are strings; timestamps are ISO-8601. Successful responses are wrapped in a `{ statusCode, success, message, data }` envelope.",
+    "title": "Xenios Trading API",
+    "description": "Place and manage orders, stream live market and account data, and read wallets, deposits and reference data over one authenticated gateway. All protected endpoints are authenticated with an HMAC-SHA256 request signature (see the Authentication guide). Decimal amounts are strings; timestamps are ISO-8601. Successful responses are wrapped in a standard { statusCode, success, message, data } envelope.",
     "version": "1.0",
     "contact": {}
   },
   "tags": [
     {
-      "name": "Health",
-      "description": "Liveness and readiness probes."
-    },
-    {
-      "name": "Account",
-      "description": "Your trading fee and effective account settings."
-    },
-    {
       "name": "Orders",
       "description": "Place, cancel, and read your orders. Placement is idempotent on client_order_id."
+    },
+    {
+      "name": "Order Book",
+      "description": "Top-of-book depth snapshots for a trading pair."
     },
     {
       "name": "Products",
@@ -957,12 +955,16 @@
       "description": "The assets available to your account."
     },
     {
-      "name": "Order Book",
-      "description": "Top-of-book depth snapshots for a trading pair."
-    },
-    {
       "name": "Wallets",
       "description": "Generate deposit addresses and read deposit history."
+    },
+    {
+      "name": "Account",
+      "description": "Your trading fee and effective account settings."
+    },
+    {
+      "name": "Health",
+      "description": "Liveness and readiness probes."
     }
   ],
   "servers": [

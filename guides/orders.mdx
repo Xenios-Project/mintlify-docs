@@ -4,41 +4,107 @@ description: "Place and cancel limit orders, idempotency, and reading order hist
 icon: "arrow-right-arrow-left"
 ---
 
-Place limit orders, cancel them, and read your order history. Order placement
-is **idempotent** — safe to retry — and every order is scoped to the
-authenticated client.
+Place orders, cancel them, and read your order history. Three order types are
+supported — **`LIMIT`**, **`MARKET`**, and **`STOP_LIMIT`**. Order placement is
+**idempotent** — safe to retry — and every order is scoped to the authenticated
+client.
 
-## Placing a limit order
+## Placing an order
 
 ```
 POST /api/v1/trading/order
 ```
 
-```json
-{
-  "side": "BUY",
-  "type": "LIMIT",
-  "base_quantity": "0.00006483",
-  "price": "77127.23",
-  "product": "BTC-USD",
-  "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
-}
-```
+### Fields
 
-| Field | Description |
-| --- | --- |
-| `side` | `BUY` or `SELL`. |
-| `type` | `LIMIT` (the only supported type today). |
-| `base_quantity` | Amount of the **base** asset, as a string. See the warning below. |
-| `price` | Limit price in the **quote** asset, as a string. |
-| `product` | Trading pair, e.g. `BTC-USD`, `ETH-USDC`. |
-| `client_order_id` | A UUID v4 you generate. Drives idempotency. |
+| Field | Required for | Description |
+| --- | --- | --- |
+| `side` | all | `BUY` or `SELL`. |
+| `type` | all | `LIMIT`, `MARKET`, or `STOP_LIMIT`. |
+| `product` | all | Trading pair, e.g. `BTC-USD`, `ETH-USDC`. |
+| `client_order_id` | all | A UUID v4 you generate. Drives idempotency. |
+| `base_quantity` | all **except** MARKET BUY | Amount of the **base** asset, as a string. |
+| `quote_value` | MARKET BUY only | Amount of **quote** currency to spend, as a string. |
+| `price` | LIMIT, STOP_LIMIT | Limit price in the **quote** asset, as a string. |
+| `stop_price` | STOP_LIMIT only | Trigger price in the **quote** asset, as a string. |
+
+All decimal fields are **positive decimal strings** (e.g. `"0.50"`, `"3000.00"`) —
+no sign, no scientific notation.
+
+### Fields by order type
+
+| Type | `base_quantity` | `quote_value` | `price` | `stop_price` |
+| --- | :---: | :---: | :---: | :---: |
+| `LIMIT` (BUY / SELL) | ✓ | — | ✓ | — |
+| `MARKET` BUY | — | ✓ | — | — |
+| `MARKET` SELL | ✓ | — | — | — |
+| `STOP_LIMIT` | ✓ | — | ✓ | ✓ |
+
+### Examples
+
+<Tabs>
+  <Tab title="Limit">
+    ```json
+    {
+      "side": "BUY",
+      "type": "LIMIT",
+      "base_quantity": "0.00006483",
+      "price": "77127.23",
+      "product": "BTC-USD",
+      "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
+    }
+    ```
+    Buys/sells a fixed **base** quantity at a set `price` or better.
+  </Tab>
+  <Tab title="Market buy">
+    ```json
+    {
+      "side": "BUY",
+      "type": "MARKET",
+      "quote_value": "100.00",
+      "product": "BTC-USD",
+      "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
+    }
+    ```
+    A market **BUY** is sized by spend: `quote_value` is how much **quote**
+    currency to spend (e.g. 100 USD) — there's no `base_quantity` or `price`.
+  </Tab>
+  <Tab title="Market sell">
+    ```json
+    {
+      "side": "SELL",
+      "type": "MARKET",
+      "base_quantity": "0.05",
+      "product": "BTC-USD",
+      "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
+    }
+    ```
+    A market **SELL** is sized by `base_quantity` and executes at the prevailing
+    price.
+  </Tab>
+  <Tab title="Stop-limit">
+    ```json
+    {
+      "side": "SELL",
+      "type": "STOP_LIMIT",
+      "base_quantity": "0.05",
+      "stop_price": "2900.00",
+      "price": "2890.00",
+      "product": "ETH-USDC",
+      "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
+    }
+    ```
+    Rests until the market hits `stop_price` (the trigger), then places a `LIMIT`
+    order at `price`.
+  </Tab>
+</Tabs>
 
 <Warning>
-  **`base_quantity` is the base asset amount, not a cash amount.** For a BUY of
-  `BTC-USD`, `base_quantity` is **BTC**, and the order costs
-  `base_quantity × price` in the quote currency (plus fees). To spend ~$5 of BTC
-  at $77,127.23, send `base_quantity = 5 / 77127.23 ≈ "0.00006483"` — not `"5"`.
+  **`base_quantity` is a base-asset amount, not a cash amount.** For a BUY of
+  `BTC-USD`, it's in **BTC**, and the order costs `base_quantity × price` in the
+  quote currency (plus fees). To spend a cash amount instead, use a **MARKET BUY**
+  with `quote_value` (e.g. `"100.00"` USD) — don't put a dollar figure in
+  `base_quantity`.
 </Warning>
 
 ### Example request
