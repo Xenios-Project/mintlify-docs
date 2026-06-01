@@ -1,0 +1,50 @@
+---
+title: "Pagination & Filtering"
+description: "Filter, sort, and page through your orders with GET /order/search."
+icon: "filter"
+---
+
+Most reads return everything relevant in one response. The exception is
+**`GET /order/search`**, which lets you filter, sort and page through your order
+history. Every result is scoped to your account automatically — you can never
+read another client's orders.
+
+## Typed filters
+
+Convenience query parameters for the most common cases:
+
+| Parameter | Description |
+| --- | --- |
+| `product_ids` | One or more pairs. Repeat or comma-separate: `?product_ids=BTC-USD,ETH-USD`. |
+| `statuses` | Filter by order status. Repeatable. |
+| `type` | Order type, e.g. `LIMIT`. |
+| `side` | `BUY` or `SELL`. |
+| `start_date` / `end_date` | ISO-8601 bounds on creation time. |
+
+```bash
+GET /api/v1/trading/order/search?product_ids=BTC-USD&side=BUY&start_date=2026-05-01T00:00:00Z
+```
+
+## List parameters
+
+Alongside the typed filters, the endpoint accepts standard list controls:
+
+| Parameter | Description |
+| --- | --- |
+| `limit` | Maximum number of records to return. |
+| `page` | 1-based page number, used with `limit`. |
+| `sort` | Field and direction, e.g. `sort=createdAt,DESC`. |
+| `filter` | Advanced field filters for power users. |
+
+```bash
+GET /api/v1/trading/order/search?limit=50&page=2&sort=createdAt,DESC
+```
+
+<Tip>
+  Page from newest to oldest with `sort=createdAt,DESC`, and keep `limit` modest
+  (e.g. 50–100) so each response stays fast and within your
+  [rate limit](/guides/rate-limits).
+</Tip>
+
+For your **complete** history in one shot (e.g. for P&L), use
+`GET /order/report` instead — see [Orders](/guides/orders).

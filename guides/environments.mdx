@@ -1,0 +1,59 @@
+---
+title: "Environments & Credentials"
+description: "Base URLs, how to obtain API credentials, and how development differs from production."
+icon: "server"
+---
+
+## Base URL
+
+Every REST endpoint lives under a single prefix; prepend your host:
+
+```
+https://<your-host>/api/v1/trading
+```
+
+For local development against your own stack:
+
+```
+http://localhost:5678/api/v1/trading
+```
+
+WebSockets use the same host with the `wss://` (or `ws://` locally) scheme — see
+[WebSockets](/guides/websockets). TLS is terminated at the edge, so always use
+`https://`/`wss://` in any deployed environment.
+
+## Getting credentials
+
+You are issued two values during onboarding:
+
+| Value | Looks like | Use |
+| --- | --- | --- |
+| **API key id** | `api_xenios_…` | Sent as `X-API-KEY`. Public identifier, safe to log. |
+| **API secret** | a long random string | Used only to sign requests — **never sent**. |
+
+Your key is also granted a set of **claims** (`read:market-data`, `write:orders`,
+…) that determine which routes it can call, and optionally an **IP allowlist**.
+See [Authentication](/guides/authentication) and [Security](/guides/security).
+
+<Info>
+  Need keys, additional claims, or a product enabled? Contact your account
+  manager or [support@xeniosproject.com](mailto:support@xeniosproject.com).
+</Info>
+
+## Development vs production
+
+The gateway adapts its behaviour to the environment it runs in:
+
+| Behaviour | Development | Production |
+| --- | --- | --- |
+| **Error detail** | Specific auth messages (e.g. "Invalid HMAC signature", "Nonce reused") to help you debug signing. | Generic ("Authentication failed") to avoid leaking detail to attackers. |
+| **Interactive API docs** | Swagger UI is exposed. | Disabled unless explicitly enabled. |
+
+<Warning>
+  Because production deliberately returns **generic** auth errors, debug your
+  signing against a non-production environment first — there you'll get the exact
+  reason a signature was rejected. See the [FAQ](/guides/faq).
+</Warning>
+
+Credentials are scoped to the environment they were issued for — don't reuse a
+development key against production or vice versa.

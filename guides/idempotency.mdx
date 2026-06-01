@@ -1,0 +1,54 @@
+---
+title: "Idempotency"
+description: "Retry order placement safely with client_order_id."
+icon: "rotate"
+---
+
+Networks fail mid-request: you send an order, the connection drops, and you
+don't know whether it landed. **Idempotency** makes the safe choice — retry —
+also the correct one.
+
+## How it works
+
+Every order you place carries a **`client_order_id`** — a UUID v4 that **you**
+generate. It's the idempotency key:
+
+- The **first** request with a given `client_order_id` creates the order.
+- Any **later** request with the **same** `client_order_id` returns the
+  **original** order instead of creating a duplicate.
+
+```json
+{
+  "side": "BUY",
+  "type": "LIMIT",
+  "base_quantity": "0.00006483",
+  "price": "77127.23",
+  "product": "BTC-USD",
+  "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
+}
+```
+
+## The replay result type
+
+When a duplicate is detected, the response is the original order with a
+`type` of `DUPLICATE_REPLAY`:
+
+| `type` | Meaning |
+| --- | --- |
+| `NEW_ORDER` | First time — the order was created. |
+| `DUPLICATE_REPLAY` | Seen this `client_order_id` before — the original order is returned. |
+
+Always inspect `type` (see [Orders](/guides/orders)) — a `2xx` status means the
+request was understood, not that a new order was placed.
+
+## Rules of thumb
+
+<Check>Generate a **fresh** UUID v4 for each *intended* order.</Check>
+<Check>Reuse it **verbatim** when retrying that same order after an error.</Check>
+<Check>Never reuse one `client_order_id` for two *different* orders — the second will be treated as a replay and silently ignored.</Check>
+
+<Warning>
+  Because retries are deduped on `client_order_id`, the safest pattern is:
+  generate the id **before** the first attempt, persist it, and reuse it for
+  every retry until you get a definitive response.
+</Warning>

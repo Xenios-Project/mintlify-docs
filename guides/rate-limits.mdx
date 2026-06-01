@@ -1,0 +1,50 @@
+---
+title: "Rate Limits"
+description: "Per-key request budgets, the 429 response, and how to back off."
+icon: "gauge-high"
+---
+
+Each API key has its own per-minute request **budget**. Exceeding it returns
+`429 Too Many Requests`.
+
+```json
+{
+  "statusCode": 429,
+  "message": "Too Many Requests",
+  "error": "Too Many Requests"
+}
+```
+
+<Info>
+  The budget is configured **on your key** to fit your use case. Need a higher
+  limit? Contact [support@xeniosproject.com](mailto:support@xeniosproject.com).
+</Info>
+
+## Handling a 429
+
+<Steps>
+  <Step title="Back off exponentially">
+    Wait, then retry with increasing delays (e.g. 1s, 2s, 4s, …) plus a little
+    random jitter so retries don't synchronise across clients.
+  </Step>
+  <Step title="Prefer streams over polling">
+    A tight REST polling loop burns your budget fast. Subscribe once over the
+    [WebSocket](/guides/websockets) — one subscription replaces a polling loop
+    for order book, order and deposit updates.
+  </Step>
+  <Step title="Cache what rarely changes">
+    Reference data (assets, products) changes infrequently — cache it client-side
+    instead of refetching. See [Market Data](/guides/market-data).
+  </Step>
+</Steps>
+
+## What's safe to retry
+
+| Request | Safe to retry? |
+| --- | --- |
+| Reads (`GET`) | Yes — they're side-effect free. |
+| Order placement (`POST /order`) | Yes, **if you reuse the same `client_order_id`** — placement is idempotent. See [Idempotency](/guides/idempotency). |
+| Cancels (`PATCH …/cancel`) | Yes — cancelling a finished order is a no-op. |
+
+Never retry blindly in a hot loop after a `429` — that just deepens the limit.
+Always back off first.

@@ -23,6 +23,7 @@
             "pages": [
               "index",
               "guides/authentication",
+              "guides/environments",
               "guides/responses",
               "guides/errors"
             ]
@@ -30,7 +31,11 @@
           {
             "group": "Trading",
             "icon": "arrow-right-arrow-left",
-            "pages": ["guides/orders", "guides/fees-and-limits"]
+            "pages": [
+              "guides/orders",
+              "guides/idempotency",
+              "guides/fees-and-limits"
+            ]
           },
           {
             "group": "Market Data",
@@ -48,6 +53,15 @@
             "pages": ["guides/websockets"]
           },
           {
+            "group": "Operations",
+            "icon": "shield-halved",
+            "pages": [
+              "guides/security",
+              "guides/rate-limits",
+              "guides/pagination"
+            ]
+          },
+          {
             "group": "Architecture",
             "icon": "sitemap",
             "pages": ["architecture/event-plane"]
@@ -55,7 +69,7 @@
           {
             "group": "Resources",
             "icon": "book-open",
-            "pages": ["guides/concepts", "changelog"]
+            "pages": ["guides/concepts", "guides/faq", "changelog"]
           }
         ]
       },
@@ -79,6 +93,10 @@
   },
   "contextual": {
     "options": ["copy", "view", "chatgpt", "claude"]
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
   },
   "seo": {
     "metatags": {

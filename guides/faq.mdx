@@ -1,0 +1,92 @@
+---
+title: "FAQ & Troubleshooting"
+description: "Common signing pitfalls and how to fix them fast."
+icon: "circle-question"
+---
+
+Most integration issues are signing problems. Work through these before reaching
+out.
+
+## Authentication
+
+<AccordionGroup>
+  <Accordion title="401 — 'Invalid HMAC signature'" icon="signature">
+    The canonical string your client built doesn't match the server's. Check, in
+    order:
+
+    - **Method** is uppercased (`POST`, not `post`).
+    - **Path** has the query string stripped, duplicate slashes collapsed, and is
+      the full gateway path (`/api/v1/trading/order`, not `/order`).
+    - **Content-Type** is lowercased and identical to the header you send.
+    - **Body hash** is `sha256` of the **raw** bytes you transmit — hash the exact
+      string you send, before any re-encoding. For empty bodies, hash `""`.
+
+    See [Authentication](/guides/authentication).
+  </Accordion>
+  <Accordion title="401 — timestamp / stale request" icon="clock">
+    `X-API-TIMESTAMP` must be Unix time in **milliseconds** and within ~30 seconds
+    of server time. Sync your clock (NTP), and don't send seconds.
+  </Accordion>
+  <Accordion title="401 — nonce reused" icon="dice">
+    Each `X-API-NONCE` may be used once. Generate a new UUID v4 **per request** —
+    not per session.
+  </Accordion>
+  <Accordion title="401 in production, but my signing looks right" icon="eye-slash">
+    Production returns **generic** auth errors on purpose. Reproduce against a
+    development environment to get the exact reason. See
+    [Environments](/guides/environments).
+  </Accordion>
+</AccordionGroup>
+
+## Authorization & access
+
+<AccordionGroup>
+  <Accordion title="401 vs 403 — what's the difference?" icon="scale-balanced">
+    **401** means *who you are* couldn't be verified (signature, timestamp,
+    nonce). **403** means you're authenticated but *not allowed* — your key lacks
+    the required [claim](/guides/security) for that route, or your IP isn't on the
+    allowlist.
+  </Accordion>
+  <Accordion title="403 — 'Missing required claim for this route'" icon="key">
+    Your key doesn't carry the claim that route needs (e.g. `write:orders` to
+    place an order). Request the claim from support. See
+    [Security](/guides/security).
+  </Accordion>
+  <Accordion title="My requests fail only from production servers" icon="network-wired">
+    Likely an IP allowlist miss — list each egress IP exactly (CIDR isn't
+    supported yet). Behind a proxy, the first `X-Forwarded-For` address must be
+    your real IP. See [Security](/guides/security).
+  </Accordion>
+  <Accordion title="I'm getting an X-API-Key-Rotation-Warning header" icon="triangle-exclamation">
+    You're signing with a **deprecated secondary** secret during a key rotation.
+    Switch to the new primary secret before the timestamp in the header — the old
+    one stops working after it. See [Security](/guides/security).
+  </Accordion>
+</AccordionGroup>
+
+## Data & behaviour
+
+<AccordionGroup>
+  <Accordion title="Why are prices and amounts strings?" icon="hashtag">
+    To avoid floating-point precision loss. Parse them with a decimal library,
+    not `Number`/`float`. See [Response Format](/guides/responses).
+  </Accordion>
+  <Accordion title="I placed an order and got 200 — is it live?" icon="circle-check">
+    A `2xx` means the request was understood, not that the order was placed.
+    Inspect `data.type` (`NEW_ORDER`, `DUPLICATE_REPLAY`, `EXTERNAL_EXECUTION_FAILED`,
+    …). See [Orders](/guides/orders).
+  </Accordion>
+  <Accordion title="My retry created nothing / returned an old order" icon="rotate">
+    That's idempotency working — a reused `client_order_id` returns the original
+    order. Use a fresh UUID for a genuinely new order. See
+    [Idempotency](/guides/idempotency).
+  </Accordion>
+  <Accordion title="I'm hitting 429s" icon="gauge-high">
+    You've exceeded your key's per-minute budget. Back off, and prefer WebSocket
+    streams over polling. See [Rate Limits](/guides/rate-limits).
+  </Accordion>
+</AccordionGroup>
+
+Still stuck? Email
+[support@xeniosproject.com](mailto:support@xeniosproject.com) with your `keyId`
+(never your secret), the endpoint, and the timestamp of a failing request.
