@@ -73,6 +73,64 @@
         ]
       }
     },
+    "/order": {
+      "post": {
+        "description": "Submits an order for the authenticated client. Supported types are\n      `LIMIT`, `MARKET` and `STOP_LIMIT`; the required fields vary by type\n      (a MARKET BUY is sized by `quote_value`, STOP_LIMIT adds `stop_price`).\n\n      **Idempotency**\n      Replays of the same `client_order_id` return the original order with\n      `type=DUPLICATE_REPLAY` instead of creating a new one.",
+        "operationId": "createOrder",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Order payload. Required fields depend on `type` (LIMIT, MARKET, STOP_LIMIT).",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order creation outcome. Inspect `data.type` to distinguish `NEW_ORDER`, `DUPLICATE_REPLAY`, and the `*_EXECUTION_FAILED` variants.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OrderResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid order payload, a per-client rule violation (product not enabled for your account, or order size below/above your configured limit), or rejected by the exchange. The `message` explains which."
+          },
+          "401": {
+            "description": "Missing or invalid API credentials."
+          }
+        },
+        "security": [
+          {
+            "xenios-hmac": [
+              "write:orders"
+            ]
+          }
+        ],
+        "summary": "Place an order",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
     "/order/open": {
       "get": {
         "description": "Returns every order for the authenticated client with status `OPEN` or `PENDING`.",
@@ -1355,6 +1413,100 @@
           "type",
           "status",
           "synced"
+        ]
+      },
+      "OrderResult": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Outcome discriminator.",
+            "enum": [
+              "NEW_ORDER",
+              "DUPLICATE_REPLAY",
+              "EXTERNAL_EXECUTION_FAILED",
+              "INTERNAL_EXECUTION_FAILED",
+              "CLIENT_NOT_FOUND"
+            ],
+            "example": "NEW_ORDER"
+          },
+          "order": {
+            "description": "The created or matched order. Present for `NEW_ORDER` and `DUPLICATE_REPLAY`; absent otherwise.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Order"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable explanation, populated on failure or duplicate.",
+            "example": "Duplicate order request detected."
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OrderRequest": {
+        "type": "object",
+        "properties": {
+          "side": {
+            "type": "string",
+            "description": "Order side.",
+            "enum": [
+              "BUY",
+              "SELL"
+            ],
+            "example": "BUY"
+          },
+          "type": {
+            "type": "string",
+            "description": "Order type. `LIMIT`, `MARKET` and `STOP_LIMIT` are accepted.",
+            "enum": [
+              "LIMIT",
+              "MARKET",
+              "STOP_LIMIT"
+            ],
+            "example": "LIMIT"
+          },
+          "base_quantity": {
+            "type": "string",
+            "description": "Base asset quantity (string-encoded decimal). Required for all orders except a MARKET BUY, which is sized by `quote_value` instead.",
+            "example": "0.50"
+          },
+          "quote_value": {
+            "type": "string",
+            "description": "Quote spend (string-encoded decimal). Required for a MARKET BUY (the amount of quote currency to spend); ignored otherwise.",
+            "example": "100.00"
+          },
+          "price": {
+            "type": "string",
+            "description": "Limit price (string-encoded decimal). Required for LIMIT and STOP_LIMIT orders; omitted for MARKET (executes at the prevailing price).",
+            "example": "3000.00"
+          },
+          "stop_price": {
+            "type": "string",
+            "description": "Stop (trigger) price (string-encoded decimal). Required for STOP_LIMIT orders; ignored otherwise.",
+            "example": "2900.00"
+          },
+          "client_order_id": {
+            "type": "string",
+            "description": "Client-generated idempotency key (UUID v4). Replays of the same value return the original order.",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
+          },
+          "product": {
+            "type": "string",
+            "description": "Trading pair id (e.g. `BTC-USD`, `ETH-USDC`).",
+            "example": "ETH-USDC"
+          }
+        },
+        "required": [
+          "side",
+          "type",
+          "base_quantity",
+          "client_order_id",
+          "product"
         ]
       },
       "GetOrderResponse": {
