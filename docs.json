@@ -18,15 +18,27 @@
             "group": "Getting Started",
             "pages": [
               "index",
-              "quickstart",
-              "authentication"
+              "guides/authentication",
+              "guides/errors"
             ]
           },
           {
             "group": "Trading",
             "pages": [
               "guides/orders",
+              "guides/fees-and-limits"
+            ]
+          },
+          {
+            "group": "Realtime",
+            "pages": [
               "guides/websockets"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/event-plane"
             ]
           }
         ]
