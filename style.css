@@ -1,0 +1,9 @@
+/* Enlarge the navbar logo. Mintlify auto-loads .css files in the project. */
+img[alt="Xenios Trading API"],
+#header img[src*="logo"],
+header img[src*="logo"],
+nav img[src*="logo"] {
+	height: 3rem !important;
+	max-height: 3rem !important;
+	width: auto !important;
+}
