@@ -931,15 +931,44 @@
   },
   "info": {
     "title": "Xenios Trading Server",
-    "description": "Xenios Trading Server API Documentation",
+    "description": "Place and manage orders, stream live market and account data, and read wallets, deposits and reference data over one authenticated gateway.\n\nAll protected endpoints are authenticated with an HMAC-SHA256 request signature (see the **Authentication** guide). Decimal amounts are strings; timestamps are ISO-8601. Successful responses are wrapped in a `{ statusCode, success, message, data }` envelope.",
     "version": "1.0",
     "contact": {}
   },
-  "tags": [],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Liveness and readiness probes."
+    },
+    {
+      "name": "Account",
+      "description": "Your trading fee and effective account settings."
+    },
+    {
+      "name": "Orders",
+      "description": "Place, cancel, and read your orders. Placement is idempotent on client_order_id."
+    },
+    {
+      "name": "Products",
+      "description": "Tradable products and pairs, plus OHLCV candles for charting."
+    },
+    {
+      "name": "Assets",
+      "description": "The assets available to your account."
+    },
+    {
+      "name": "Order Book",
+      "description": "Top-of-book depth snapshots for a trading pair."
+    },
+    {
+      "name": "Wallets",
+      "description": "Generate deposit addresses and read deposit history."
+    }
+  ],
   "servers": [
     {
       "url": "/api/v1/trading",
-      "description": "Gateway Proxy"
+      "description": "Gateway proxy. Prefix every path with this base URL."
     }
   ],
   "components": {

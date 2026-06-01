@@ -1,6 +1,7 @@
 ---
 title: "Event Plane"
 description: "The split between WebSocket libraries and the responsibility of each piece of the event plane (Redis Pub/Sub + WS)."
+icon: "sitemap"
 ---
 
 This doc records the deliberate split between WebSocket libraries and the
@@ -17,15 +18,13 @@ Both libraries are intentional. Neither is dead weight.
 
 ## Event flow (one-way)
 
-```
-Coinbase Prime (WS)         Direct REST (Coinbase Prime SDK)
-       │                                  │
-       ▼                                  ▼
-  trading_server  ──── Redis Pub/Sub ────►  gateway  ────► clients (raw ws)
-   (BullMQ jobs,                            (broadcasts to subscribed
-    socket.io rooms)                         users via WebSocketsGateway)
-       ▲                                  ▲
-       └────── internal-only ws (not exposed externally) ──┘
+```mermaid
+flowchart LR
+    CBWS["Coinbase Prime<br/>(WebSocket)"] --> TS
+    CBREST["Coinbase Prime<br/>(REST SDK)"] --> TS
+    TS["trading_server<br/><i>BullMQ jobs · socket.io rooms</i>"] -->|Redis Pub/Sub| GW
+    GW["gateway<br/><i>WebSocketsGateway</i>"] -->|raw ws| C["Clients"]
+    GW -. "internal-only ws<br/>(not exposed externally)" .-> TS
 ```
 
 Redis Pub/Sub is the only cross-app event channel. All gateway → trading_server

@@ -1,0 +1,79 @@
+---
+title: "Concepts & Glossary"
+description: "Key terms used across the Xenios Trading API — base/quote, claims, idempotency, and more."
+icon: "book-bookmark"
+---
+
+A quick reference for the vocabulary used throughout these guides.
+
+## Trading
+
+<AccordionGroup>
+  <Accordion title="Product / pair" icon="arrow-right-arrow-left">
+    A tradable market, written `BASE-QUOTE` (e.g. `BTC-USD`). The **base** is the
+    asset you buy or sell; the **quote** is what it's priced in. See
+    [Market Data](/guides/market-data).
+  </Accordion>
+  <Accordion title="Base quantity" icon="coins">
+    The amount of the **base** asset on an order — not a cash amount. For a BUY of
+    `BTC-USD`, `base_quantity` is in BTC, and the order costs
+    `base_quantity × price` in the quote currency. See [Orders](/guides/orders).
+  </Accordion>
+  <Accordion title="Order value" icon="calculator">
+    `base_quantity × price`, expressed in the quote currency. Per-product
+    minimum/maximum **limits** apply to this value, not to the quantity. See
+    [Fees & Limits](/guides/fees-and-limits).
+  </Accordion>
+  <Accordion title="Markup percent" icon="percent">
+    Your trading fee, expressed as a percent (`0.30` = 0.30%). Deducted from the
+    filled amount. Per-client when configured, otherwise the platform default.
+  </Accordion>
+  <Accordion title="Whitelist (restricted)" icon="list-check">
+    Your account may only trade an explicit list of products. When `restricted`
+    is `true`, the `products` array is the complete set you may trade; an empty
+    array means none yet. See [Fees & Limits](/guides/fees-and-limits).
+  </Accordion>
+</AccordionGroup>
+
+## Reliability
+
+<AccordionGroup>
+  <Accordion title="Idempotency" icon="rotate">
+    Submitting the same `client_order_id` twice returns the **original** order
+    instead of creating a duplicate — so retries after a network error are safe.
+  </Accordion>
+  <Accordion title="client_order_id" icon="fingerprint">
+    A UUID v4 **you** generate per intended order. It's the idempotency key;
+    reuse it verbatim when retrying. See [Orders](/guides/orders).
+  </Accordion>
+  <Accordion title="Result type" icon="circle-check">
+    Order responses wrap an outcome in `type` (`NEW_ORDER`, `DUPLICATE_REPLAY`,
+    `EXTERNAL_EXECUTION_FAILED`, `INTERNAL_EXECUTION_FAILED`). A `2xx` status means
+    the request was understood — always check `type`.
+  </Accordion>
+</AccordionGroup>
+
+## Authentication
+
+<AccordionGroup>
+  <Accordion title="Canonical string" icon="signature">
+    The deterministic six-line string (timestamp, nonce, method, path,
+    content-type, body hash) that you sign with HMAC-SHA256. See
+    [Authentication](/guides/authentication).
+  </Accordion>
+  <Accordion title="Nonce" icon="dice">
+    A unique value per request (a UUID v4). Each may be used once — replays are
+    rejected.
+  </Accordion>
+  <Accordion title="Claims" icon="key">
+    Permissions attached to your API key that decide what it can do:
+    `read:market-data`, `read:account`, `read:orders`, `write:orders`,
+    `cancel:orders`, `read:assets`. Calling a route without its claim returns
+    `403`. See [Authentication](/guides/authentication).
+  </Accordion>
+  <Accordion title="Envelope" icon="brackets-curly">
+    Every successful response is wrapped in
+    `{ statusCode, success, message, data }`. Your resource is under `data`.
+    See [Response Format](/guides/responses).
+  </Accordion>
+</AccordionGroup>

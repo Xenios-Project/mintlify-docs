@@ -1,6 +1,7 @@
 ---
 title: "Introduction"
 description: "Place and manage orders, stream live market and account data, and read wallets, deposits and reference data — all behind one authenticated gateway."
+icon: "book-open"
 ---
 
 The Xenios Trading API lets you place and manage orders, stream live market
@@ -78,4 +79,25 @@ once in [Authentication](/guides/authentication) and reuse it everywhere.
 - Errors use standard HTTP status codes — see
   [Errors & Rate Limits](/guides/errors).
 
-Browse the full endpoint catalogue in the **API Reference**.
+## Explore the API
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/guides/authentication">
+    Sign every request with HMAC-SHA256 — headers, canonical string, claims.
+  </Card>
+  <Card title="Orders" icon="arrow-right-arrow-left" href="/guides/orders">
+    Place and cancel limit orders, idempotency, and order history.
+  </Card>
+  <Card title="Market Data" icon="chart-candlestick" href="/guides/market-data">
+    Products, assets, the order book, and OHLCV candles.
+  </Card>
+  <Card title="Wallets & Deposits" icon="wallet" href="/guides/wallets-deposits">
+    Generate deposit addresses and read deposit history.
+  </Card>
+  <Card title="WebSockets" icon="bolt" href="/guides/websockets">
+    Stream order book, order and deposit updates over one socket.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    The full endpoint catalogue with request/response schemas.
+  </Card>
+</CardGroup>

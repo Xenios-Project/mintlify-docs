@@ -1,6 +1,7 @@
 ---
 title: "Orders"
 description: "Place and cancel limit orders, idempotency, and reading order history."
+icon: "arrow-right-arrow-left"
 ---
 
 Place limit orders, cancel them, and read your order history. Order placement
@@ -39,6 +40,64 @@ POST /api/v1/trading/order
   `base_quantity × price` in the quote currency (plus fees). To spend ~$5 of BTC
   at $77,127.23, send `base_quantity = 5 / 77127.23 ≈ "0.00006483"` — not `"5"`.
 </Warning>
+
+### Example request
+
+Build the signed headers as shown in [Authentication](/guides/authentication),
+then send the body:
+
+<CodeGroup>
+
+```ts TypeScript
+const body = JSON.stringify({
+  side: 'BUY',
+  type: 'LIMIT',
+  base_quantity: '0.00006483',
+  price: '77127.23',
+  product: 'BTC-USD',
+  client_order_id: crypto.randomUUID(),
+});
+
+const headers = buildAuthHeaders({
+  secret: process.env.XENIOS_API_SECRET,
+  keyId: process.env.XENIOS_API_KEY,
+  method: 'POST',
+  path: '/api/v1/trading/order',
+  body,
+});
+
+const res = await fetch('https://<your-host>/api/v1/trading/order', {
+  method: 'POST',
+  headers,
+  body,
+});
+const { data } = await res.json();
+console.log(data.type, data.id);
+```
+
+```python Python
+import json, os, uuid, requests
+
+body = json.dumps({
+    "side": "BUY",
+    "type": "LIMIT",
+    "base_quantity": "0.00006483",
+    "price": "77127.23",
+    "product": "BTC-USD",
+    "client_order_id": str(uuid.uuid4()),
+})
+
+headers = build_auth_headers(
+    os.environ["XENIOS_API_SECRET"],
+    os.environ["XENIOS_API_KEY"],
+    "POST", "/api/v1/trading/order", body,
+)
+
+res = requests.post("https://<your-host>/api/v1/trading/order", headers=headers, data=body)
+print(res.json()["data"]["type"])
+```
+
+</CodeGroup>
 
 ## Idempotency
 
