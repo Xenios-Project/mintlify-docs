@@ -1,0 +1,30 @@
+---
+title: "Orders"
+description: "Place, modify, and cancel orders."
+---
+
+The gateway supports market, limit, and stop orders.
+
+## Place an order
+
+```ts
+const res = await fetch("https://api.xeniosproject.com/v1/orders", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.XENIOS_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    symbol: "BTC-USDT",
+    side: "buy",
+    type: "limit",
+    price: "65000",
+    quantity: "0.01",
+  }),
+});
+```
+
+<Note>
+  Refer to the [API Reference](/api-reference) for the full set of order
+  parameters and response fields.
+</Note>

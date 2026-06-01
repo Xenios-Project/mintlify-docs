@@ -1,0 +1,101 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Xenios Trading API",
+    "description": "Place and manage orders, stream live market and account data, and read wallets, deposits and reference data over one authenticated gateway.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "https://api.xeniosproject.com/v1" }
+  ],
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/account/wallets": {
+      "get": {
+        "summary": "List wallets",
+        "description": "Returns the authenticated account's wallet balances.",
+        "responses": {
+          "200": {
+            "description": "Wallet balances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Wallet" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/orders": {
+      "post": {
+        "summary": "Place an order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NewOrder" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order accepted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Wallet": {
+        "type": "object",
+        "properties": {
+          "asset": { "type": "string", "example": "USDT" },
+          "free": { "type": "string", "example": "1000.00" },
+          "locked": { "type": "string", "example": "0.00" }
+        }
+      },
+      "NewOrder": {
+        "type": "object",
+        "required": ["symbol", "side", "type", "quantity"],
+        "properties": {
+          "symbol": { "type": "string", "example": "BTC-USDT" },
+          "side": { "type": "string", "enum": ["buy", "sell"] },
+          "type": { "type": "string", "enum": ["market", "limit", "stop"] },
+          "price": { "type": "string", "example": "65000" },
+          "quantity": { "type": "string", "example": "0.01" }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "ord_123" },
+          "symbol": { "type": "string", "example": "BTC-USDT" },
+          "side": { "type": "string", "example": "buy" },
+          "type": { "type": "string", "example": "limit" },
+          "price": { "type": "string", "example": "65000" },
+          "quantity": { "type": "string", "example": "0.01" },
+          "status": { "type": "string", "example": "open" }
+        }
+      }
+    }
+  }
+}

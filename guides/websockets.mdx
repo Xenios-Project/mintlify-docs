@@ -1,0 +1,19 @@
+---
+title: "WebSockets"
+description: "Subscribe to live market and account streams."
+---
+
+Connect to the realtime gateway to receive live market and account updates.
+
+```ts
+const ws = new WebSocket("wss://api.xeniosproject.com/v1/stream");
+
+ws.onopen = () => {
+  ws.send(JSON.stringify({ type: "auth", token: process.env.XENIOS_API_KEY }));
+  ws.send(JSON.stringify({ type: "subscribe", channel: "ticker", symbol: "BTC-USDT" }));
+};
+
+ws.onmessage = (event) => {
+  console.log(JSON.parse(event.data));
+};
+```
